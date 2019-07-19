@@ -13,6 +13,12 @@ const permissionRouter = {
   },
   children: [
     {
+      path: 'admin-list',
+      component: () => import('@/views/permission-manage/admin-list'),
+      name: 'adminList',
+      meta: { title: '管理员列表' }
+    },
+    {
       path: 'role-list',
       component: () => import('@/views/permission-manage/role-list'),
       name: 'roleList',

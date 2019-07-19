@@ -258,12 +258,12 @@
       },
       handleUpdate(scope) {
         // console.log(row.id)
-        // console.log(JSON.stringify(row))
+        console.log(JSON.stringify(this.temp))
         this.temp = Object.assign({}, scope.row) // copy obj
+        console.log(JSON.stringify(this.temp))
         // this.temp.timestamp = new Date(this.temp.timestamp)
         checkedPermission(scope.row.id).then(response => {
           this.checked = response.data
-
         })
         this.dialogStatus = 'update'
         this.dialogFormVisible = true

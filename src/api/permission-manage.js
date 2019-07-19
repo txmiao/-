@@ -127,7 +127,6 @@ export function getPermissionlist() {
 
 export function checkedPermission(id) {
   return request({
-    // url: `/role/${id}`,
     baseURL: `http://yuanhangcw.me/manage/role/edit/${id}`,
     method: 'get'
   })
@@ -140,3 +139,52 @@ export function updateRole(data) {
     data
   })
 }
+
+
+// 管理员
+export function adminList(query) {
+  return request({
+    method: 'get',
+    baseURL: 'http://yuanhangcw.me/manage/admin',
+    params: query
+  })
+}
+
+export function getRolelist() {
+  return request({
+    baseURL: `http://yuanhangcw.me/manage/admin/role`,
+    method: 'get'
+  })
+}
+
+export function createAdmim(data) {
+  return request({
+    baseURL: `http://yuanhangcw.me/manage/admin`,
+    method: 'post',
+    data
+  })
+}
+
+export function updateAdmin(data) {
+  return request({
+    baseURL: 'http://yuanhangcw.me/manage/admin/update',
+    method: 'post',
+    data
+  })
+}
+
+export function checkedRole(id) {
+  return request({
+    baseURL: `http://yuanhangcw.me/manage/admin/edit/${id}`,
+    method: 'get'
+  })
+}
+
+export function deleteAdmin(id) {
+  return request({
+    // url: `/role/${id}`,
+    baseURL: `http://yuanhangcw.me/manage/admin/destroy/${id}`,
+    method: 'get'
+  })
+}
+
