@@ -1,8 +1,3 @@
-	#	Time	Action	Message	Duration / Fetch
-0	1	23:13:27	SELECT 
-     *
- FROM
-     yh_admins
- WHERE
-     oid = 1
- LIMIT 0, 1000	Error Code: 1054. Unknown error 1054	0.000 sec
+/node_modules
+/.idea
+/.gitignore
