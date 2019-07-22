@@ -72,7 +72,7 @@
                 </el-form-item>
 
                 <el-form-item label="文章分类" prop="category_id">
-                    <el-select v-model="temp.category_id" class="filter-item" placeholder="请选择文章分类">
+                    <el-select   v-model="temp.category_id" class="filter-item" placeholder="请选择文章分类">
                         <el-option v-for="item in categorylist" :key="item.id" :label="item.name" :value="item.id"/>
                     </el-select>
                 </el-form-item>
@@ -95,7 +95,7 @@
                 <!--action="http://yuanhangcw.me/manage/article"-->
                 <el-form-item label="缩略图">
                     <el-upload
-                            class="avatar-uploader" name="image"
+                            class="avatar-uploader" name="thumbnail"
                             action="http://yuanhangcw.me/manage/article/store_image"
                             :show-file-list="false"
                             :on-success="handleAvatarSuccess"
@@ -105,9 +105,9 @@
                     </el-upload>
                 </el-form-item>
 
-                <el-form-item label="内容" prop="is_top">
+                <el-form-item label="内容" prop="content">
                     <div>
-                        <tinymce v-model="temp.content" :height="300" style="width: 580px;"/>
+                        <tinymce  ref="editor" v-model="temp.content" :height="300" style="width: 580px;"/>
                     </div>
                 </el-form-item>
 
@@ -140,7 +140,7 @@
     getCategoryList,
     articleList,
     createArticle,
-    updatePermission,
+    updateArticle,
     deleteArticle
   } from '@/api/article-manage'
   import Pagination from '@/components/Pagination' // secondary package based on el-pagination
@@ -179,7 +179,6 @@
           _t: 'name'
         },
         importanceOptions: [1, 2, 3],
-
         sortOptions: [{ label: '标题', key: 'name' }],
         statusOptions: ['published', 'draft', 'deleted'],
         showReviewer: false,
@@ -187,7 +186,7 @@
           is_show: 101,
           is_top: 101,
           category_id: '',
-          images: '',
+          thumbnail: '',
           content: ''
         },
         dialogFormVisible: false,
@@ -200,7 +199,7 @@
         pvData: [],
         rules: {
           title: [{ required: true, message: '标题必填', trigger: 'blur' }],
-          category_id: [{ required: true, message: '分类必填', trigger: 'blur' }]
+          category_id: [{ required: true, message: '分类必填', trigger: 'change',type: 'number'  }]
 
         },
         downloadLoading: false
@@ -213,7 +212,7 @@
     methods: {
       handleAvatarSuccess(res, file) {
         this.imageUrl = URL.createObjectURL(file.raw)
-        this.temp.images = res.data
+        this.temp.thumbnail = res.data
       },
       beforeAvatarUpload(file) {
         const isJPG = file.type === 'image/jpeg'
@@ -293,10 +292,12 @@
       },
       handleCreate() {
         this.resetTemp()
+
         this.dialogStatus = 'create'
         this.dialogFormVisible = true
         this.$nextTick(() => {
           this.$refs['dataForm'].clearValidate()
+          this.$refs.editor.setContent('')
         })
       },
       createData() {
@@ -321,24 +322,34 @@
         })
       },
       handleUpdate(scope) {
-
-        this.temp = Object.assign({}, scope.row) // copy obj
-        console.log(JSON.stringify(this.temp))
-
-        this.imageUrl = this.temp.thumbnail
-        // this.temp.timestamp = new Date(this.temp.timestamp)
         this.dialogStatus = 'update'
         this.dialogFormVisible = true
+
+
+        this.temp = Object.assign({}, scope.row) // copy obj
+
+        console.log(JSON.stringify(this.temp))
+        var urlq = 'http://yuanhangcw.me/storage/'
+        this.imageUrl = urlq + this.temp.thumbnail
+
         this.$nextTick(() => {
           this.$refs['dataForm'].clearValidate()
+          this.$refs.editor.setContent(this.temp.content)
         })
+        // console.log(1)
+        // console.log(this.temp.content)
+        //
+        // console.log(2)
+
+
       },
       updateData() {
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
             const tempData = Object.assign({}, this.temp)
             this.$delete(tempData, 'created_at')
-            updatePermission(tempData).then(() => {
+            this.$delete(tempData,'category_name')
+            updateArticle(tempData).then(() => {
               for (const v of this.list) {
                 if (v.id === this.temp.id) {
                   const index = this.list.indexOf(v)
@@ -348,8 +359,8 @@
               }
               this.dialogFormVisible = false
               this.$notify({
-                title: '权限',
-                message: '编辑权限成功',
+                title: '文章',
+                message: '编辑文章成功',
                 type: 'success',
                 duration: 2000
               })

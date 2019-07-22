@@ -70,6 +70,14 @@ export function deleteArticle(id) {
   })
 }
 
+export function updateArticle(data) {
+  return request({
+    baseURL: 'http://yuanhangcw.me/manage/article/update',
+    method: 'post',
+    data
+  })
+}
+
 
 
 
