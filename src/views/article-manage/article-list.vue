@@ -95,8 +95,8 @@
                 <!--action="http://yuanhangcw.me/manage/article"-->
                 <el-form-item label="缩略图">
                     <el-upload
-                            class="avatar-uploader" name="thumbnail"
-                            action="http://yuanhangcw.me/manage/article/store_image"
+                            class="avatar-uploader" name="uploadImage"
+                            action="http://yuanhangcw.me/manage/system/upload"
                             :show-file-list="false"
                             :on-success="handleAvatarSuccess"
                             :before-upload="beforeAvatarUpload">
@@ -121,16 +121,6 @@
                     确定
                 </el-button>
             </div>
-        </el-dialog>
-
-        <el-dialog :visible.sync="dialogPvVisible" title="Reading statistics">
-            <el-table :data="pvData" border fit highlight-current-row style="width: 100%">
-                <el-table-column prop="key" label="Channel"/>
-                <el-table-column prop="pv" label="Pv"/>
-            </el-table>
-            <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="dialogPvVisible = false">Confirm</el-button>
-      </span>
         </el-dialog>
     </div>
 </template>
@@ -186,7 +176,7 @@
           is_show: 101,
           is_top: 101,
           category_id: '',
-          thumbnail: '',
+          uploadImage: '',
           content: ''
         },
         dialogFormVisible: false,
@@ -212,7 +202,7 @@
     methods: {
       handleAvatarSuccess(res, file) {
         this.imageUrl = URL.createObjectURL(file.raw)
-        this.temp.thumbnail = res.data
+        this.temp.uploadImage = res.data.path
       },
       beforeAvatarUpload(file) {
         const isJPG = file.type === 'image/jpeg'
@@ -297,7 +287,9 @@
         this.dialogFormVisible = true
         this.$nextTick(() => {
           this.$refs['dataForm'].clearValidate()
-          this.$refs.editor.setContent('')
+          setInterval(() => {
+            this.$refs.editor.setContent(this.temp.content)
+          }, 5000)
         })
       },
       createData() {
@@ -330,11 +322,14 @@
 
         console.log(JSON.stringify(this.temp))
         var urlq = 'http://yuanhangcw.me/storage/'
-        this.imageUrl = urlq + this.temp.thumbnail
+        this.imageUrl = urlq + this.temp.uploadImage
 
         this.$nextTick(() => {
           this.$refs['dataForm'].clearValidate()
-          this.$refs.editor.setContent(this.temp.content)
+          setInterval(() => {
+            this.$refs.editor.setContent(this.temp.content)
+          }, 5000)
+
         })
         // console.log(1)
         // console.log(this.temp.content)
