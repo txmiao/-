@@ -13,6 +13,7 @@ import tableRouter from './modules/table'
 import nestedRouter from './modules/nested'
 import permissionRouter from './modules/permission-manage'
 import articleRouter from './modules/article-manage'
+import userRouter from './modules/user-manage'
 
 /**
  * Note: sub-menu only appear when route children.length >= 1
@@ -197,6 +198,7 @@ export const asyncRoutes = [
   tableRouter,
   permissionRouter,
   articleRouter,
+  userRouter,
 
   {
     path: '/example',
