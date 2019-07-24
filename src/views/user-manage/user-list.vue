@@ -3,6 +3,9 @@
         <div class="filter-container">
             <el-input v-model="listQuery._kw" placeholder="请输入搜索内容" style="width: 200px;" class="filter-item"
                       @keyup.enter.native="handleFilter"/>
+            <el-select v-model="listQuery.type" style="width: 140px" class="filter-item" @change="handleFilter">
+                <el-option v-for="item in typeOptions" :key="item.key" :label="item.label" :value="item.key"/>
+            </el-select>
             <el-select v-model="listQuery._t" style="width: 140px" class="filter-item" @change="handleFilter">
                 <el-option v-for="item in sortOptions" :key="item.key" :label="item.label" :value="item.key"/>
             </el-select>
@@ -33,24 +36,25 @@
 
             <el-table-column label="姓名" min-width="80px">
                 <template slot-scope="scope">
-                    <span>{{ scope.row.title }}</span>
+                    <span>{{ scope.row.real_name }}</span>
                 </template>
             </el-table-column>
             <el-table-column label="手机" width="250px" align="center">
                 <template slot-scope="scope">
-                    <span>{{ scope.row.category_name }}</span>
+                    <span>{{ scope.row.phone }}</span>
                 </template>
             </el-table-column>
 
             <el-table-column label="类型" width="120px" align="center">
                 <template slot-scope="scope">
-                    <span>{{ scope.row.category_name }}</span>
+                    <span v-if="scope.row.type==100">学生</span>
+                    <span v-else>在职</span>
                 </template>
             </el-table-column>
 
             <el-table-column label="身份证号码" width="280px" align="center">
                 <template slot-scope="scope">
-                    <span>{{ scope.row.category_name }}</span>
+                    <span>{{ scope.row.id_card }}</span>
                 </template>
             </el-table-column>
 
@@ -79,33 +83,33 @@
         <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
             <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="80px"
                      style="width: 400px; margin-left:50px;">
-                <el-form-item label="标题" prop="title">
-                    <el-input v-model="temp.title" placeholder="请填写标题"/>
+                <el-form-item label="真实姓名" prop="real_name">
+                    <el-input v-model="temp.real_name" placeholder="请填写真实姓名"/>
                 </el-form-item>
 
-                <el-form-item label="文章分类" prop="category_id">
-                    <el-select   v-model="temp.category_id" class="filter-item" placeholder="请选择文章分类">
-                        <el-option v-for="item in categorylist" :key="item.id" :label="item.name" :value="item.id"/>
+                <el-form-item label="身份证号" prop="id_card">
+                    <el-input v-model="temp.id_card" placeholder="请填写身份证号"/>
+                </el-form-item>
+
+                <el-form-item label="手机号码" prop="phone">
+                    <el-input v-model="temp.phone" placeholder="请填写手机号"/>
+                </el-form-item>
+
+                <el-form-item label="用户昵称" prop="nickname">
+                    <el-input v-model="temp.nickname" placeholder="请填写昵称"/>
+                </el-form-item>
+
+                <el-form-item label="用户密码" :prop="temp.mima">
+                    <el-input v-model="temp.password" :placeholder="temp.hint"/>
+                </el-form-item>
+
+                <el-form-item label="用户类型" prop="type">
+                    <el-select v-model="temp.type" class="filter-item" placeholder="请选择用户类型">
+                        <el-option v-for="item in typeOptionst" :key="item.id" :label="item.name" :value="item.id"/>
                     </el-select>
                 </el-form-item>
 
-
-                <el-form-item label="是否展示" prop="is_show">
-                    <el-radio-group v-model="temp.is_show">
-                        <el-radio :label="101">不展示</el-radio>
-                        <el-radio :label="100">展示</el-radio>
-                    </el-radio-group>
-                </el-form-item>
-
-                <el-form-item label="是否置顶" prop="is_top">
-                    <el-radio-group v-model="temp.is_top">
-                        <el-radio :label="101">不置顶</el-radio>
-                        <el-radio :label="100">置顶</el-radio>
-                    </el-radio-group>
-                </el-form-item>
-                <!--action="https://jsonplaceholder.typicode.com/posts/"-->
-                <!--action="http://yuanhangcw.me/manage/article"-->
-                <el-form-item label="缩略图">
+                <el-form-item label="用户头像">
                     <el-upload
                             class="avatar-uploader" name="uploadImage"
                             action="http://yuanhangcw.me/manage/system/upload"
@@ -116,14 +120,6 @@
                         <i v-else class="el-icon-plus avatar-uploader-icon"></i>
                     </el-upload>
                 </el-form-item>
-
-                <el-form-item label="内容" prop="content">
-                    <div>
-                        <tinymce  ref="editor" v-model="temp.content" :height="300" style="width: 580px;"/>
-                    </div>
-                </el-form-item>
-
-
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click="dialogFormVisible = false">
@@ -139,12 +135,16 @@
 
 <script>
   import {
+    updateUser,
+    deleteUser,
+    createUser,
+    userList,
     getCategoryList,
     articleList,
     createArticle,
     updateArticle,
     deleteArticle
-  } from '@/api/article-manage'
+  } from '@/api/user-manage'
   import Pagination from '@/components/Pagination' // secondary package based on el-pagination
   import waves from '@/directive/waves' // waves directive
   import Tinymce from '@/components/Tinymce'
@@ -167,6 +167,54 @@
       }
     },
     data() {
+      var checkPhone = (rule, value, callback) => {
+        const phoneReg = /^1[3|4|5|6|7|8][0-9]{9}$/
+        if (!value) {
+          return callback(new Error('电话号码不能为空'))
+        }
+        setTimeout(() => {
+
+          if (!Number.isInteger(+value)) {
+            callback(new Error('请输入数字值'))
+          } else {
+            if (phoneReg.test(value)) {
+              callback()
+            } else {
+              callback(new Error('电话号码格式不正确'))
+            }
+          }
+        }, 100)
+      };
+
+      // 身份证号验证
+      var checkIDCardNumber = (rule, value, callback) => {
+        if (!value) {
+          return callback(new Error('身份证不能为空'));
+        }
+        let aCity={11:"北京",12:"天津",13:"河北",14:"山西",15:"内蒙古",21:"辽宁",22:"吉林",23:"黑龙江",31:"上海",32:"江苏",33:"浙江",34:"安徽",35:"福建",36:"江西",37:"山东",41:"河南",42:"湖北",43:"湖南",44:"广东",45:"广西",46:"海南",50:"重庆",51:"四川",52:"贵州",53:"云南",54:"西藏",61:"陕西",62:"甘肃",63:"青海",64:"宁夏",65:"新疆",71:"台湾",81:"香港",82:"澳门",91:"国外"}
+        let iSum = 0 ;
+        let info = "" ;
+        if(!/^\d{17}(\d|x)$/i.test(value)) {
+          return callback(new Error("你输入的身份证长度或格式错误"));
+        }
+        value = value.replace(/x$/i,"a");
+        if(aCity[parseInt(value.substr(0,2))] == null) {
+          return callback(new Error("你的身份证地区非法")) ;
+        }
+        let sBirthday = value.substr(6,4)+"-" + Number(value.substr(10,2)) + "-" + Number(value.substr(12,2));
+        let  d = new Date(sBirthday.replace(/-/g,"/")) ;
+        if(sBirthday !== (d.getFullYear()+ "-" + (d.getMonth()+1) + "-" + d.getDate())){
+          return callback(new Error("身份证上的出生日期非法"));
+        }
+        for(var i = 17;i>=0;i --) {
+          iSum += (Math.pow(2,i) % 11) * parseInt(value.charAt(17 - i),11) ;
+        }
+        if(iSum%11 !== 1) {
+          return callback(new Error("你输入的身份证号非法"));
+        }
+        return callback();
+      };
+
       return {
         imageUrl: '',
         tableKey: 0,
@@ -178,18 +226,22 @@
           page: 1,
           limit: 10,
           _kw: undefined,
-          _t: 'real_name'
+          _t: 'real_name',
+          type: ''
         },
         importanceOptions: [1, 2, 3],
-        sortOptions: [{ label: '姓名', key: 'real_name' },{ label: '用户ID', key: 'id' },{ label: '手机号', key: 'phone' }],
+        sortOptions: [{ label: '姓名', key: 'real_name' }, { label: '用户ID', key: 'id' }, { label: '手机号', key: 'phone' }],
+        typeOptions: [{ label: '全部', key: '' }, { label: '学生', key: 100 }, { label: '在职', key: 101 }],
+        typeOptionst: [{ id: 100, name: '学生' }, { id: 101, name: '在职' }]
+        ,
         statusOptions: ['published', 'draft', 'deleted'],
         showReviewer: false,
         temp: {
           is_show: 101,
           is_top: 101,
-          category_id: '',
-          uploadImage: '',
-          content: ''
+          hint: '请输入密码',
+          type: '',
+          uploadImage: ''
         },
         dialogFormVisible: false,
         dialogStatus: '',
@@ -200,9 +252,17 @@
         dialogPvVisible: false,
         pvData: [],
         rules: {
-          title: [{ required: true, message: '标题必填', trigger: 'blur' }],
-          category_id: [{ required: true, message: '分类必填', trigger: 'change',type: 'number'  }]
+          real_name: [{ required: true, message: '真实姓名必填', trigger: 'blur' }],
+          // id_card: [{ required: true, message: '身份证号必填', trigger: 'blur' }],
 
+          id_card: [{validator: checkIDCardNumber, trigger: ['blur', 'change']}, {required: true, message: '请输入证件号码', trigger: 'change'}],
+
+          // phone: [{ required: true, message: '手机号码必填', trigger: 'blur' }],
+          phone: [{ required: true, validator: checkPhone, trigger: 'blur' }],
+          nickname: [{ required: true, message: '用户昵称必填', trigger: 'blur' },,{ min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }],
+          password: [{ required: true, message: '用户密码必填', trigger: 'blur' },{ min: 6, max: 20, message: '长度在 6 到 20 个字符', trigger: 'blur' }],
+
+          type: [{ required: true, message: '用户类型必填', trigger: 'change', type: 'number' }]
         },
         downloadLoading: false
       }
@@ -214,7 +274,7 @@
     methods: {
       handleAvatarSuccess(res, file) {
         this.imageUrl = URL.createObjectURL(file.raw)
-        this.temp.uploadImage = res.data.path
+        this.temp.avatar = res.data.path
       },
       beforeAvatarUpload(file) {
         const isJPG = file.type === 'image/jpeg'
@@ -236,7 +296,7 @@
       },
       getList() {
         this.listLoading = true
-        articleList(this.listQuery).then(response => {
+        userList(this.listQuery).then(response => {
           this.list = response.data.data
           this.total = response.data.total
 
@@ -252,13 +312,13 @@
       },
       handleModifyStatus({ $index, row }) {
 
-        this.$confirm('确定删除此文章吗?', '删除提示', {
+        this.$confirm('确定删除此用户吗?', '删除提示', {
           confirmButtonText: '确认',
           cancelButtonText: '取消',
           type: 'warning'
         })
           .then(async() => {
-            await deleteArticle(row.id)
+            await deleteUser(row.id)
             this.list.splice($index, 1)
             this.$message({
               type: 'success',
@@ -286,10 +346,12 @@
       resetTemp() {
         this.imageUrl = ''
         this.temp = {
-          is_show: 101,
-          is_top: 101,
-          content: ''
-
+          real_name: '',
+          id_card: '',
+          phone: '',
+          nickname: '',
+          hint: '请输入密码',
+          mima: 'password'
         }
       },
       handleCreate() {
@@ -299,25 +361,27 @@
         this.dialogFormVisible = true
         this.$nextTick(() => {
           this.$refs['dataForm'].clearValidate()
-          setInterval(() => {
-            this.$refs.editor.setContent(this.temp.content)
-          }, 5000)
+
         })
       },
       createData() {
+        this.$delete(this.temp,'mima')
+        this.$delete(this.temp,'hint')
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
-            createArticle(this.temp).then(response => {
+            createUser(this.temp).then(response => {
               this.temp.id = response.data.id
+              this.$delete(this.temp,'password')
+              this.temp.hint = '不填写为不修改密码'
               var str = response.data.created_at.date
               var s1 = str.substring(0, str.length - 7)
               this.temp.created_at = s1
-              this.temp.category_name = response.data.cat_name
+              // this.temp.category_name = response.data.cat_name
               this.list.unshift(this.temp)
               this.dialogFormVisible = false
               this.$notify({
-                title: '文章',
-                message: '增加文章成功',
+                title: '用户',
+                message: '增加用户成功',
                 type: 'success',
                 duration: 2000
               })
@@ -329,34 +393,30 @@
         this.dialogStatus = 'update'
         this.dialogFormVisible = true
 
-
         this.temp = Object.assign({}, scope.row) // copy obj
 
         console.log(JSON.stringify(this.temp))
+        this.temp.hint = '不填写为不修改密码'
         var urlq = 'http://yuanhangcw.me/storage/'
-        this.imageUrl = urlq + this.temp.uploadImage
+        this.imageUrl = urlq + this.temp.avatar
 
         this.$nextTick(() => {
           this.$refs['dataForm'].clearValidate()
-          setInterval(() => {
-            this.$refs.editor.setContent(this.temp.content)
-          }, 5000)
-
         })
-        // console.log(1)
-        // console.log(this.temp.content)
-        //
-        // console.log(2)
-
-
       },
       updateData() {
         this.$refs['dataForm'].validate((valid) => {
           if (valid) {
+            this.temp.hint = '不填写为不修改密码'
             const tempData = Object.assign({}, this.temp)
             this.$delete(tempData, 'created_at')
-            this.$delete(tempData,'category_name')
-            updateArticle(tempData).then(() => {
+            this.$delete(tempData, 'category_name')
+            this.$delete(tempData, 'hint')
+            this.$delete(tempData, 'deleted_at')
+            this.$delete(tempData, 'last_actived_at')
+            this.$delete(tempData, 'last_actived_ip')
+            this.$delete(tempData, 'is_auth')
+            updateUser(tempData).then(() => {
               for (const v of this.list) {
                 if (v.id === this.temp.id) {
                   const index = this.list.indexOf(v)
@@ -366,8 +426,8 @@
               }
               this.dialogFormVisible = false
               this.$notify({
-                title: '文章',
-                message: '编辑文章成功',
+                title: '用户',
+                message: '编辑用户成功',
                 type: 'success',
                 duration: 2000
               })
