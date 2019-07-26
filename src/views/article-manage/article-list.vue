@@ -289,7 +289,7 @@
           this.$refs['dataForm'].clearValidate()
           setInterval(() => {
             this.$refs.editor.setContent(this.temp.content)
-          }, 5000)
+          }, 10000)
         })
       },
       createData() {
@@ -328,7 +328,7 @@
           this.$refs['dataForm'].clearValidate()
           setInterval(() => {
             this.$refs.editor.setContent(this.temp.content)
-          }, 5000)
+          }, 10000)
 
         })
         // console.log(1)

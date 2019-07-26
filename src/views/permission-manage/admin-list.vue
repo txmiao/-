@@ -81,6 +81,14 @@
                     <el-input v-model="temp.password" :placeholder="temp.hint"/>
                 </el-form-item>
 
+                <el-form-item label="登录方式" prop="login_method">
+                    <el-radio-group v-model="temp.login_method" >
+                        <el-radio :label="100">密码</el-radio>
+                        <el-radio :label="101">验证码</el-radio>
+                        <el-radio :label="102" >密码+验证码</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+
                 <el-form-item label="选择角色">
                     <el-checkbox-group v-model="checked" @change="test">
                         <el-checkbox v-for="item in checkList" :key="item.id" :label="item.id">{{item.display_name}}
@@ -254,7 +262,8 @@
           this.temp = {
             name: '',
             hint: '请输入密码',
-            mima: 'password'
+            mima: 'password',
+            login_method:100
           }
       },
       handleCreate() {
