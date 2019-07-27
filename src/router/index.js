@@ -37,7 +37,12 @@ import userRouter from './modules/user-manage'
  */
 export const routerMap = {
   la: () => import('@/layout'),
-  icont: () => import('@/views/icons/index')
+  icont: () => import('@/views/icons/index'),
+
+  adminlist: () => import('@/views/permission-manage/admin-list'),
+  rolelist: () => import('@/views/permission-manage/role-list'),
+  permissionlist: () => import('@/views/permission-manage/permission-list'),
+  resourceslist: () => import('@/views/permission-manage/resources-list'),
 }
 /**
  * constantRoutes
