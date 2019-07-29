@@ -34,3 +34,12 @@ export function getAccountPower() {
     baseURL: 'http://yuanhangcw.me/manage/tree'
   })
 }
+
+//登录方式
+export function loginWay(username) {
+  return request({
+    baseURL: 'http://yuanhangcw.me/manage/loginWay',
+    method: 'get',
+    params: { username }
+  })
+}
